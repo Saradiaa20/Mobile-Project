@@ -12,13 +12,12 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await Supabase.initialize(
-    url: 'https://ptnxcsugztfcdyrjhbrj.supabase.co',
+    url: 'https://ptnxcsugztfcdyrjhbrj.supabase.co/',
     anonKey: 'sb_publishable_hek7Qv_4MBnKC9cx1LRsZA_4ttCtIz9',
   );
 
   runApp(const ProviderScope(child: MyApp()));
 }
-
 // class MyApp extends StatelessWidget {
 //   const MyApp({super.key});
 
@@ -85,10 +84,10 @@ class MyApp extends StatelessWidget {
       ),
       home: provider.MultiProvider(  // Use the alias
         providers: [
-          provider.ChangeNotifierProvider(create: (_) => CheckoutProvider()),
-          provider.ChangeNotifierProvider(create: (_) => CartProvider()),
-          provider.ChangeNotifierProvider(create: (_) => OrdersProvider()),
-          provider.ChangeNotifierProvider(create: (_) => FavoritesProvider()),
+          provider.ChangeNotifierProvider(create: () => CheckoutProvider()),
+          provider.ChangeNotifierProvider(create: () => CartProvider()),
+          provider.ChangeNotifierProvider(create: () => OrdersProvider()),
+          provider.ChangeNotifierProvider(create: () => FavoritesProvider()),
         ],
         child: const AuthChecker(),
       ),

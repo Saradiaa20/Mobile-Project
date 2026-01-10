@@ -52,9 +52,9 @@ class HomeScreen extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Row(
                   children: const [
-                    _TopButton('NEW ARRIVALS'),
+                    _TopButton('EVENTS'),
                     SizedBox(width: 12),
-                    _TopButton('BEST SELLERS'),
+                    _TopButton('BRANDS'),
                   ],
                 ),
               ),
