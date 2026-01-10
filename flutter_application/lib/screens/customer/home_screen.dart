@@ -112,8 +112,8 @@ class HomeScreen extends StatelessWidget {
 
               const SizedBox(height: 32),
 
-              _SectionHeader('SHOP HOODIES'),
-              _ProductsHorizontal(filter: 'hoodie'),
+              _SectionHeader('DENIM'),
+              _ProductsHorizontal(filter: 'denim'),
 
               const SizedBox(height: 32),
 
