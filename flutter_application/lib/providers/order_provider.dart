@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/order_model.dart';
-import '../services/supabase_service.dart';
 import '../services/order_service.dart';
+
+final ordersProvider = ChangeNotifierProvider<OrdersProvider>((ref) {
+  return OrdersProvider();
+});
+
 
 class OrdersProvider extends ChangeNotifier {
   final _service = OrderService();

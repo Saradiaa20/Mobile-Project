@@ -6,6 +6,7 @@ import '../../services/supabase_service.dart';
 import 'product_details_screen.dart';
 import '../../utils/responsive.dart';
 
+
 class FavoriteScreen extends StatefulWidget {
   const FavoriteScreen({super.key});
 

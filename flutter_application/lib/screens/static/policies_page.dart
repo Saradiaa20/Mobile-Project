@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application/widgets/app_layout.dart';
-import 'package:flutter_application/widgets/footer.dart';
 
 class PoliciesPage extends StatelessWidget {
   const PoliciesPage({super.key});

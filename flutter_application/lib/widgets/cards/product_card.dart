@@ -25,7 +25,7 @@ borderRadius: BorderRadius.circular(12),
 ),
 child: ClipRRect(
 borderRadius: BorderRadius.circular(12),
-child: product.imagePath != null && product.imagePath!.isNotEmpty
+child: product.imagePath.isNotEmpty
 ? Image.asset(
 'assets/images/${product.imagePath}',
 fit: BoxFit.cover,
@@ -55,7 +55,7 @@ overflow: TextOverflow.ellipsis,
 subtitle: Padding(
 padding: const EdgeInsets.only(top: 4),
 child: Text(
-'${product.price.toStringAsFixed(2)}',
+product.price.toStringAsFixed(2),
 style: const TextStyle(
 color: Colors.black,
 fontWeight: FontWeight.bold,

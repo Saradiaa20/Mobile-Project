@@ -18,6 +18,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _nameController = TextEditingController();
+  final _brandNameController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
   // UI State variables
@@ -57,14 +58,15 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     setState(() => _isLoading = true);
 
     try {
-      // Using your authControllerProvider as requested
-      await ref
-          .read(authControllerProvider)
-          .signUp(
+      // Sign up with brand name if registering as brand owner
+      await ref.read(authControllerProvider).signUp(
             email: _emailController.text.trim(),
             password: _passwordController.text.trim(),
             username: _nameController.text.trim(),
             role: _selectedRole == UserRole.brandOwner ? 'brand' : 'user',
+            brandName: _selectedRole == UserRole.brandOwner
+                ? _brandNameController.text.trim()
+                : null,
           );
 
       if (mounted) {
@@ -74,15 +76,16 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             backgroundColor: Colors.green,
           ),
         );
-        Navigator.of(
-          context,
-        ).pushReplacement(MaterialPageRoute(builder: (_) => const HomeScreen()));
-        // Navigator.of(context).pop(); // Go back to Login
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const HomeScreen()),
+        );
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+        );
+      }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -93,6 +96,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     _emailController.dispose();
     _passwordController.dispose();
     _nameController.dispose();
+    _brandNameController.dispose();
     super.dispose();
   }
 
@@ -145,20 +149,20 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   TextFormField(
                     controller: _passwordController,
                     obscureText: _obscurePassword,
-                    decoration: _inputStyle('Password', Icons.lock_outline)
-                        .copyWith(
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              _obscurePassword
-                                  ? Icons.visibility_off
-                                  : Icons.visibility,
-                              size: 18,
-                            ),
-                            onPressed: () => setState(
-                              () => _obscurePassword = !_obscurePassword,
-                            ),
-                          ),
+                    decoration:
+                        _inputStyle('Password', Icons.lock_outline).copyWith(
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscurePassword
+                              ? Icons.visibility_off
+                              : Icons.visibility,
+                          size: 18,
                         ),
+                        onPressed: () => setState(
+                          () => _obscurePassword = !_obscurePassword,
+                        ),
+                      ),
+                    ),
                     validator: (v) =>
                         (v == null || v.length < 6) ? 'Min 6 characters' : null,
                   ),
@@ -205,6 +209,20 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       ),
                     ],
                   ),
+
+                  // Brand Name Field (only show when Brand is selected)
+                  if (_selectedRole == UserRole.brandOwner) ...[
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: _brandNameController,
+                      decoration: _inputStyle('Brand Name', Icons.store),
+                      validator: (v) => (v == null || v.isEmpty)
+                          ? 'Brand name is required'
+                          : null,
+                    ),
+                  ],
+
+                  const SizedBox(height: 12),
 
                   // Terms and Policy
                   CheckboxListTile(

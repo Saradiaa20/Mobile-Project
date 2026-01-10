@@ -1,6 +1,6 @@
 name: flutter_application
 description: "A new Flutter project."
-publish_to: 'none'
+publish_to: "none"
 version: 0.1.0
 
 environment:
@@ -16,7 +16,7 @@ dependencies:
   # flutter_riverpod: ^3.0.3
   supabase_flutter: ^2.5.6
   image_picker: ^1.0.7
-  file_picker: ^6.1.1
+  file_picker: ^8.0.0
 
 dev_dependencies:
   flutter_test:

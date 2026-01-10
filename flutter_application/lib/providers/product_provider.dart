@@ -1,148 +1,182 @@
-import 'package:flutter/foundation.dart';
-import 'package:flutter_application/services/product_service.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:io';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/product_model.dart';
+import '../services/product_service.dart';
 
-final productProvider = StateNotifierProvider<ProductNotifier, List<Product>>((
-  ref,
-) {
+/// --------------------
+/// STATE
+/// --------------------
+class ProductState {
+  final List<Product> products;
+  final List<Product> searchResults;
+  final Map<String, List<Product>> previewProducts;
+  final bool isLoading;
+  final bool isSearching;
+
+  const ProductState({
+    this.products = const [],
+    this.searchResults = const [],
+    this.previewProducts = const {},
+    this.isLoading = false,
+    this.isSearching = false,
+  });
+
+  ProductState copyWith({
+    List<Product>? products,
+    List<Product>? searchResults,
+    Map<String, List<Product>>? previewProducts,
+    bool? isLoading,
+    bool? isSearching,
+  }) {
+    return ProductState(
+      products: products ?? this.products,
+      searchResults: searchResults ?? this.searchResults,
+      previewProducts: previewProducts ?? this.previewProducts,
+      isLoading: isLoading ?? this.isLoading,
+      isSearching: isSearching ?? this.isSearching,
+    );
+  }
+
+  operator [](int other) {}
+}
+
+/// --------------------
+/// PROVIDER
+/// --------------------
+final productProvider =
+    StateNotifierProvider<ProductNotifier, ProductState>((ref) {
   return ProductNotifier();
 });
 
-class ProductNotifier extends StateNotifier<List<Product>> {
-  final ProductService service = ProductService();
+/// --------------------
+/// NOTIFIER
+/// --------------------
+class ProductNotifier extends StateNotifier<ProductState> {
+  final ProductService _service = ProductService();
 
-  bool _isLoading = false;
-  final Map<String, List<Product>> _previewProducts = {};
+  ProductNotifier() : super(const ProductState());
 
-  ProductNotifier() : super([]);
+  // LOAD PRODUCTS ~Sara
+  Future<void> loadProducts(String filter) async {
+    state = state.copyWith(isLoading: true);
 
-  // Fix getters
-  bool get isLoading => _isLoading;
-  List<Product> get products => state;
-  Map<String, List<Product>> get previewProducts => _previewProducts;
-
-  Future<void> loadProducts(String brandId) async {
     try {
-      _isLoading = true;
-      print('Loading products for brand: $brandId');
-      final products = await service.getBrandProducts(brandId);
-      state = products;
-      _isLoading = false;
-      print('State updated with ${products.length} products');
+      final products = await _service.fetchProducts(filter: filter);
+      state = state.copyWith(products: products);
     } catch (e) {
-      _isLoading = false;
-      print('Error in loadProducts: $e');
-      state = [];
-      rethrow;
+      state = state.copyWith(products: []);
+      print('LOAD PRODUCTS ERROR: $e');
+    } finally {
+      state = state.copyWith(isLoading: false);
     }
   }
 
+  // SEARCH PRODUCTS ~Nada 
+  Future<void> searchProducts(String query) async {
+    if (query.trim().isEmpty) {
+      state = state.copyWith(
+        searchResults: [],
+        isSearching: false,
+      );
+      return;
+    }
+
+    state = state.copyWith(isSearching: true);
+
+    try {
+      final results = await _service.searchProducts(query);
+      state = state.copyWith(searchResults: results);
+    } catch (e) {
+      print('SEARCH ERROR: $e');
+    } finally {
+      state = state.copyWith(isSearching: false);
+    }
+  }
+
+  // PREVIEW PRODUCTS ~Sara&Nada
+  Future<void> loadPreviewProducts(String filter) async {
+    if (state.previewProducts.containsKey(filter)) return;
+
+    try {
+      final products = await _service.fetchProducts(filter: filter);
+      final updatedPreview = Map<String, List<Product>>.from(
+        state.previewProducts,
+      );
+
+      updatedPreview[filter] = products.take(4).toList();
+
+      state = state.copyWith(previewProducts: updatedPreview);
+    } catch (e) {
+      print('PREVIEW ERROR: $e');
+    }
+  }
+
+  // ADD PRODUCT ~Sara
   Future<void> add(Product product, File? imageFile) async {
     try {
-      print('Adding new product...');
       String? imagePath;
 
-      // Save image locally if provided
       if (imageFile != null) {
-        imagePath = await service.saveImageLocally(imageFile);
-        print('Image saved with filename: $imagePath');
+        imagePath = await _service.saveImageLocally(imageFile);
       }
 
-      // Create product with image path (productId should be empty for new products)
-      final productWithImage = product.copyWith(
-        productId: '', // Empty for new products
-        imagePath: imagePath,
+      final newProduct = await _service.addProduct(
+        product.copyWith(imagePath: imagePath),
       );
 
-      print('Calling service.addProduct...');
-      final newProduct = await service.addProduct(productWithImage);
-
-      print('Product added, updating state...');
-      state = [...state, newProduct];
-
-      print(
-        'State updated successfully. New product ID: ${newProduct.productId}',
+      state = state.copyWith(
+        products: [...state.products, newProduct],
       );
     } catch (e) {
-      print('Error in add: $e');
+      print('ADD PRODUCT ERROR: $e');
       rethrow;
     }
   }
 
+  // UPDATE PRODUCT ~Sara
   Future<void> update(Product product, File? newImageFile) async {
     try {
-      print('Updating product: ${product.productId}');
       String? imagePath = product.imagePath;
 
-      // If new image is uploaded
       if (newImageFile != null) {
-        print('New image provided, updating...');
-
-        // Delete old image if exists
-        if (product.imagePath != null && product.imagePath!.isNotEmpty) {
-          await service.deleteLocalImage(product.imagePath!);
-          print('Old image deleted');
+        if (product.imagePath.isNotEmpty) {
+          await _service.deleteLocalImage(product.imagePath);
         }
-
-        // Save new image locally
-        imagePath = await service.saveImageLocally(newImageFile);
-        print('New image saved: $imagePath');
+        imagePath = await _service.saveImageLocally(newImageFile);
       }
 
-      // Update product with new image path
       final updatedProduct = product.copyWith(imagePath: imagePath);
+      await _service.updateProduct(updatedProduct);
 
-      print('Calling service.updateProduct...');
-      await service.updateProduct(updatedProduct);
-
-      print('Product updated in Supabase, updating state...');
-      state = state
-          .map(
-            (p) => p.productId == updatedProduct.productId ? updatedProduct : p,
-          )
-          .toList();
-
-      print('State updated successfully');
+      state = state.copyWith(
+        products: state.products
+            .map((p) =>
+                p.productId == updatedProduct.productId ? updatedProduct : p)
+            .toList(),
+      );
     } catch (e) {
-      print('Error in update: $e');
+      print('UPDATE ERROR: $e');
       rethrow;
     }
   }
 
+  // DELETE PRODUCT ~Sara
   Future<void> delete(String productId) async {
     try {
-      print('Deleting product: $productId');
+      final product =
+          state.products.firstWhere((p) => p.productId == productId);
 
-      final product = state.firstWhere(
-        (p) => p.productId == productId,
-        orElse: () => throw Exception('Product not found'),
+      await _service.deleteProduct(productId, product.imagePath);
+
+      state = state.copyWith(
+        products:
+            state.products.where((p) => p.productId != productId).toList(),
       );
-
-      print('Calling service.deleteProduct...');
-      await service.deleteProduct(productId, product.imagePath);
-
-      print('Product deleted from Supabase, updating state...');
-      state = state.where((p) => p.productId != productId).toList();
-
-      print('State updated successfully');
     } catch (e) {
-      print('Error in delete: $e');
+      print('DELETE ERROR: $e');
       rethrow;
     }
   }
 
-// Implement loadPreviewProducts
-  Future<void> loadPreviewProducts(String filter) async {
-    if (_previewProducts.containsKey(filter)) return;
-
-    try {
-      final products = await service.fetchProducts(filter: filter);
-      _previewProducts[filter] = products.take(4).toList();
-      ChangeNotifier();
-    } catch (e) {
-      print('Error loading preview products: $e');
-    }
-  }
+  
 }

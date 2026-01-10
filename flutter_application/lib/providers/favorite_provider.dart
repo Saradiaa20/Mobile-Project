@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../services/favorite_service.dart';
+
+final favoritesProvider = ChangeNotifierProvider<FavoritesProvider>((ref) {
+  return FavoritesProvider();
+});
+
 
 class FavoritesProvider extends ChangeNotifier {
   final Set<String> _favoriteProductIds = {};

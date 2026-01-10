@@ -1,7 +1,12 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/review_model.dart';
 import '../services/review_service.dart';
+
+final reviewProvider = ChangeNotifierProvider<ReviewProvider>((ref) {
+  return ReviewProvider();
+});
 
 class ReviewProvider extends ChangeNotifier {
   final ReviewService _service = ReviewService();
