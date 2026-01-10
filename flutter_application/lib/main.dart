@@ -44,8 +44,8 @@ class MyApp extends StatelessWidget {
           ),
         ),
       ),
-      home: const LoginScreen(),
-      // home: const HomeScreen(),
+      // home: const LoginScreen(),
+      home: const HomeScreen(),
       // home: const BrandHomeScreen(
       //   brandId: '947961b0-af07-4892-9a15-5e8f85eb1120',
       // ),
