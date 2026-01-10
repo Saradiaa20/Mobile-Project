@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../models/analytics_model.dart';
+import '../../providers/analytics_provider.dart';
 
 class BrandAnalyticsScreen extends ConsumerStatefulWidget {
   final String brandId;
@@ -14,25 +16,10 @@ class BrandAnalyticsScreen extends ConsumerStatefulWidget {
 class _BrandAnalyticsScreenState extends ConsumerState<BrandAnalyticsScreen> {
   String _selectedPeriod = 'Today';
 
-  // Dummy data for demonstration
-  final List<Map<String, dynamic>> topProducts = [
-    {'name': 'Basic T-Shirt', 'sold': 45, 'revenue': '4,500'},
-    {'name': 'Jeans', 'sold': 32, 'revenue': '3,200'},
-    {'name': 'Hoodie', 'sold': 28, 'revenue': '2,800'},
-    {'name': 'Sneakers', 'sold': 21, 'revenue': '2,100'},
-    {'name': 'Cap', 'sold': 15, 'revenue': '1,500'},
-  ];
-
-  final List<Map<String, dynamic>> recentOrders = [
-    {'id': 'ORD-001', 'date': '2026-01-10', 'total': '450', 'status': 'Pending'},
-    {'id': 'ORD-002', 'date': '2026-01-09', 'total': '1,200', 'status': 'Shipped'},
-    {'id': 'ORD-003', 'date': '2026-01-09', 'total': '850', 'status': 'Delivered'},
-    {'id': 'ORD-004', 'date': '2026-01-08', 'total': '2,100', 'status': 'Delivered'},
-    {'id': 'ORD-005', 'date': '2026-01-08', 'total': '650', 'status': 'Pending'},
-  ];
-
   @override
   Widget build(BuildContext context) {
+    final analyticsAsync = ref.watch(brandAnalyticsProvider({'brandId': widget.brandId, 'days': _getDaysFromPeriod(_selectedPeriod)}));
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -48,194 +35,198 @@ class _BrandAnalyticsScreenState extends ConsumerState<BrandAnalyticsScreen> {
         ),
         iconTheme: const IconThemeData(color: Colors.black),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Time Period Selector
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: [
-                  _buildPeriodChip('Today'),
-                  const SizedBox(width: 8),
-                  _buildPeriodChip('Week'),
-                  const SizedBox(width: 8),
-                  _buildPeriodChip('Month'),
-                  const SizedBox(width: 8),
-                  _buildPeriodChip('Year'),
-                ],
+      body: analyticsAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, stack) => Center(child: Text('Error: $error')),
+        data: (analytics) => SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Time Period Selector
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    _buildPeriodChip('Today'),
+                    const SizedBox(width: 8),
+                    _buildPeriodChip('Week'),
+                    const SizedBox(width: 8),
+                    _buildPeriodChip('Month'),
+                    const SizedBox(width: 8),
+                    _buildPeriodChip('Year'),
+                  ],
+                ),
               ),
-            ),
 
-            const SizedBox(height: 24),
+              const SizedBox(height: 24),
 
-            // Sales Overview Cards
-            Row(
-              children: [
-                Expanded(
-                  child: _buildStatCard(
-                    'Total Sales',
-                    'EGP 45,230',
-                    Icons.attach_money,
-                    Colors.green,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildStatCard(
-                    'Orders',
-                    '142',
-                    Icons.shopping_bag_outlined,
-                    Colors.blue,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildStatCard(
-                    'Products',
-                    '24',
-                    Icons.inventory_2_outlined,
-                    Colors.orange,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildStatCard(
-                    'Customers',
-                    '156',
-                    Icons.people_outline,
-                    const Color(0xFFACBDAA),
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 24),
-
-            // Sales Overview
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.grey[200]!),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              // Sales Overview Cards
+              Row(
                 children: [
-                  const Text(
-                    'Sales Overview',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+                  Expanded(
+                    child: _buildStatCard(
+                      'Total Sales',
+                      'EGP ${analytics.totalRevenue.toStringAsFixed(0)}',
+                      Icons.attach_money,
+                      Colors.green,
                     ),
                   ),
-                  const SizedBox(height: 20),
-                  _buildSalesMetric(
-                    'Total Revenue',
-                    'EGP 45,230',
-                    Icons.attach_money,
-                    Colors.green,
-                  ),
-                  const SizedBox(height: 12),
-                  _buildSalesMetric(
-                    'Total Orders',
-                    '234',
-                    Icons.shopping_bag,
-                    const Color(0xFFACBDAA),
-                  ),
-                  const SizedBox(height: 12),
-                  _buildSalesMetric(
-                    'Average Order',
-                    'EGP 193',
-                    Icons.trending_up,
-                    Colors.blue,
-                  ),
-                  const SizedBox(height: 12),
-                  _buildSalesMetric(
-                    'Products Sold',
-                    '456',
-                    Icons.inventory,
-                    Colors.orange,
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            // Top Products Section
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.grey[200]!),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'Top Products',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          // TODO: Show all products
-                        },
-                        child: const Text(
-                          'View All',
-                          style: TextStyle(color: Color(0xFFACBDAA)),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  ...topProducts.map((product) => _buildTopProductItem(product)),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            // Recent Orders
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.grey[200]!),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Recent Orders',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildStatCard(
+                      'Orders',
+                      '${analytics.totalOrders}',
+                      Icons.shopping_bag_outlined,
+                      Colors.blue,
                     ),
                   ),
-                  const SizedBox(height: 12),
-                  ...recentOrders.map((order) => _buildOrderItem(order)),
                 ],
               ),
-            ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildStatCard(
+                      'Products',
+                      '${analytics.productsSold}',
+                      Icons.inventory_2_outlined,
+                      Colors.orange,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildStatCard(
+                      'Customers',
+                      '156', // Keep dummy for now, as not in model
+                      Icons.people_outline,
+                      const Color(0xFFACBDAA),
+                    ),
+                  ),
+                ],
+              ),
 
-            const SizedBox(height: 32),
-          ],
+              const SizedBox(height: 24),
+
+              // Sales Overview
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.grey[200]!),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Sales Overview',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    _buildSalesMetric(
+                      'Total Revenue',
+                      'EGP ${analytics.totalRevenue.toStringAsFixed(0)}',
+                      Icons.attach_money,
+                      Colors.green,
+                    ),
+                    const SizedBox(height: 12),
+                    _buildSalesMetric(
+                      'Total Orders',
+                      '${analytics.totalOrders}',
+                      Icons.shopping_bag,
+                      const Color(0xFFACBDAA),
+                    ),
+                    const SizedBox(height: 12),
+                    _buildSalesMetric(
+                      'Average Order',
+                      'EGP ${analytics.averageOrderValue.toStringAsFixed(0)}',
+                      Icons.trending_up,
+                      Colors.blue,
+                    ),
+                    const SizedBox(height: 12),
+                    _buildSalesMetric(
+                      'Products Sold',
+                      '${analytics.productsSold}',
+                      Icons.inventory,
+                      Colors.orange,
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              // Top Products Section
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.grey[200]!),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Top Products',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            // TODO: Show all products
+                          },
+                          child: const Text(
+                            'View All',
+                            style: TextStyle(color: Color(0xFFACBDAA)),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    ...analytics.topProducts.map((product) => _buildTopProductItem(product)),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              // Recent Orders
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.grey[200]!),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Recent Orders',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    ...analytics.recentOrders.map((order) => _buildOrderItem(order)),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 32),
+            ],
+          ),
         ),
       ),
     );
@@ -364,7 +355,7 @@ class _BrandAnalyticsScreenState extends ConsumerState<BrandAnalyticsScreen> {
     );
   }
 
-  Widget _buildTopProductItem(Map<String, dynamic> product) {
+  Widget _buildTopProductItem(TopProduct product) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
@@ -376,7 +367,9 @@ class _BrandAnalyticsScreenState extends ConsumerState<BrandAnalyticsScreen> {
               color: Colors.grey[200],
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(Icons.image, color: Colors.grey[400]),
+            child: product.imagePath != null
+                ? Image.network(product.imagePath!, fit: BoxFit.cover)
+                : Icon(Icons.image, color: Colors.grey[400]),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -384,18 +377,18 @@ class _BrandAnalyticsScreenState extends ConsumerState<BrandAnalyticsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  product['name'],
+                  product.name,
                   style: const TextStyle(fontWeight: FontWeight.w600),
                 ),
                 Text(
-                  '${product['sold']} sold',
+                  '${product.quantitySold} sold',
                   style: TextStyle(color: Colors.grey[600], fontSize: 12),
                 ),
               ],
             ),
           ),
           Text(
-            'EGP ${product['revenue']}',
+            'EGP ${product.revenue.toStringAsFixed(0)}',
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
         ],
@@ -403,7 +396,7 @@ class _BrandAnalyticsScreenState extends ConsumerState<BrandAnalyticsScreen> {
     );
   }
 
-  Widget _buildOrderItem(Map<String, dynamic> order) {
+  Widget _buildOrderItem(RecentOrder order) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
@@ -418,12 +411,12 @@ class _BrandAnalyticsScreenState extends ConsumerState<BrandAnalyticsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  order['id'],
+                  order.orderId,
                   style: const TextStyle(fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  order['date'],
+                  order.date,
                   style: TextStyle(color: Colors.grey[600], fontSize: 12),
                 ),
               ],
@@ -433,18 +426,18 @@ class _BrandAnalyticsScreenState extends ConsumerState<BrandAnalyticsScreen> {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                'EGP ${order['total']}',
+                'EGP ${order.total.toStringAsFixed(0)}',
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 4),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: _getStatusColor(order['status']),
+                  color: _getStatusColor(order.status),
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(
-                  order['status'],
+                  order.status,
                   style: const TextStyle(color: Colors.white, fontSize: 11),
                 ),
               ),
@@ -465,6 +458,21 @@ class _BrandAnalyticsScreenState extends ConsumerState<BrandAnalyticsScreen> {
         return Colors.blue;
       default:
         return Colors.grey;
+    }
+  }
+
+  int _getDaysFromPeriod(String period) {
+    switch (period) {
+      case 'Today':
+        return 1;
+      case 'Week':
+        return 7;
+      case 'Month':
+        return 30;
+      case 'Year':
+        return 365;
+      default:
+        return 30;
     }
   }
 }

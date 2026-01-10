@@ -4,7 +4,9 @@ import '../services/analytics_service.dart';
 
 final analyticsServiceProvider = Provider((ref) => AnalyticsService());
 
-final brandAnalyticsProvider = FutureProvider.family<SalesAnalytics, String>((ref, brandId) async {
+final brandAnalyticsProvider = FutureProvider.family<SalesAnalytics, Map<String, dynamic>>((ref, params) async {
   final service = ref.watch(analyticsServiceProvider);
-  return await service.getBrandAnalytics(brandId);
+  final brandId = params['brandId'] as String;
+  final days = params['days'] as int? ?? 30;
+  return await service.getBrandAnalytics(brandId, days: days);
 });
