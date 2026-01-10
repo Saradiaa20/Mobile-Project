@@ -100,7 +100,7 @@ class _ProductManagementScreenState
 
   @override
   Widget build(BuildContext context) {
-    final products = ref.watch(productProvider);
+    final products = ref.watch(productProvider).products;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -203,8 +203,7 @@ class _ProductManagementScreenState
                                 top: Radius.circular(16),
                               ),
                               child:
-                                  product.imagePath != null &&
-                                      product.imagePath!.isNotEmpty
+                                  product.imagePath.isNotEmpty
                                   ? Image.asset(
                                       'assets/images/${product.imagePath}',
                                       fit: BoxFit.cover,

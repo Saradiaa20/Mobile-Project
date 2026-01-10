@@ -1,13 +1,261 @@
+// import 'package:flutter/material.dart';
+// // import 'package:provider/provider.dart';
+// import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+// import '../../models/product_model.dart';
+// import '../../providers/product_provider.dart';
+// import '../../providers/favorite_provider.dart';
+// import '../../services/supabase_service.dart';
+// import 'product_details_screen.dart';
+
+// class ProductsScreen extends ConsumerStatefulWidget {
+//   final String filter;
+//   final String title;
+
+//   const ProductsScreen({
+//     super.key,
+//     required this.filter,
+//     required this.title,
+//   });
+
+//   // @override
+//   // State<ProductsScreen> createState() => _ProductsScreenState();
+//   @override
+//   ConsumerState<ProductsScreen> createState() => _ProductsScreenState();
+// }
+
+// class _ProductsScreenState extends ConsumerState<ProductsScreen> {
+//   // @override
+//   // void initState() {
+//   //   super.initState();
+//   //   WidgetsBinding.instance.addPostFrameCallback((_) {
+//   //     context.read<ProductProvider>().loadProducts(widget.filter);
+//   //     // Load favorites when screen opens
+//   //     context.read<FavoritesProvider>().loadFavorites();
+//   //   });
+//   // }
+
+//   @override
+//   void initState() {
+//     super.initState();
+//     WidgetsBinding.instance.addPostFrameCallback((_) {
+//       ref.read(productProvider.notifier).loadProducts(widget.filter);
+//       //ref.read(favoritesProvider.notifier).loadFavorites();
+//     });
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     //final provider = context.watch<ProductProvider>();
+//     final productState = ref.watch(productProvider);
+//     final products = productState.products;
+
+//     return Scaffold(
+//       appBar: AppBar(title: Text(widget.title)),
+//       body: productState.isLoading
+//           ? const Center(child: CircularProgressIndicator())
+//           : productState.products.isEmpty
+//               ? const Center(
+//                   child: Text(
+//                     'No products found',
+//                     style: TextStyle(fontSize: 16, color: Colors.grey),
+//                   ),
+//                 )
+//               : GridView.builder(
+//                   padding: const EdgeInsets.all(16),
+//                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+//                     crossAxisCount: 2,
+//                     childAspectRatio: 0.7,
+//                     crossAxisSpacing: 12,
+//                     mainAxisSpacing: 12,
+//                   ),
+//                   itemCount: productState.products.length,
+//                   itemBuilder: (context, index) {
+//                     return ProductCard(
+//                       product: productState.products[index],
+//                     );
+//                   },
+//                 ),
+//     );
+//   }
+// }
+
+// class ProductCard extends StatelessWidget {
+//   final Product product;
+
+//   const ProductCard({
+//     super.key,
+//     required this.product,
+//   });
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return InkWell(
+//       borderRadius: BorderRadius.circular(12),
+//       onTap: () {
+//         Navigator.push(
+//           context,
+//           MaterialPageRoute(
+//             builder: (_) => ProductDetailsScreen(product: product),
+//           ),
+//         );
+//       },
+//       child: Container(
+//         decoration: BoxDecoration(
+//           color: Colors.white,
+//           borderRadius: BorderRadius.circular(12),
+//         ),
+//         child: Column(
+//           crossAxisAlignment: CrossAxisAlignment.start,
+//           children: [
+//             Expanded(
+//               child: ClipRRect(
+//                 borderRadius: BorderRadius.circular(12),
+//                 child: Stack(
+//                   children: [
+//                     Positioned.fill(
+//                       child: Image.asset(
+//                         'assets/images/${product.imagePath}',
+//                         fit: BoxFit.cover,
+//                       ),
+//                     ),
+//                     Positioned(
+//                       bottom: 8,
+//                       right: 8,
+//                       child: InkWell(
+//                         onTap: () {},
+//                         child: Container(
+//                           padding: const EdgeInsets.all(6),
+//                           decoration: BoxDecoration(
+//                             shape: BoxShape.circle,
+//                             color: const Color.fromARGB(255, 159, 152, 152)
+//                                 .withAlpha(128),
+//                           ),
+//                           child: const Icon(
+//                             Icons.add,
+//                             size: 18,
+//                             color: Colors.white,
+//                           ),
+//                         ),
+//                       ),
+//                     ),
+//                   ],
+//                 ),
+//               ),
+//             ),
+//             const SizedBox(height: 8),
+//             Padding(
+//               padding: const EdgeInsets.symmetric(horizontal: 6),
+//               child: Row(
+//                 children: [
+//                   Expanded(
+//                     child: Text(
+//                       product.name,
+//                       maxLines: 1,
+//                       overflow: TextOverflow.ellipsis,
+//                       style: const TextStyle(fontWeight: FontWeight.bold),
+//                     ),
+//                   ),
+//                   Consumer(
+//                     builder: (context, ref, _) {
+                      
+//                       final isFavorite =
+//                           FavoritesProvider.isFavorite(product.id);
+
+//                       return InkWell(
+//                         onTap: () async {
+//                           // Check if user is logged in
+//                           final user = SupabaseService.client.auth.currentUser;
+//                           if (user == null) {
+//                             if (context.mounted) {
+//                               ScaffoldMessenger.of(context).showSnackBar(
+//                                 SnackBar(
+//                                   content: const Row(
+//                                     mainAxisSize: MainAxisSize.min,
+//                                     children: [
+//                                       Icon(
+//                                         Icons.info_outline,
+//                                         color: Colors.white,
+//                                         size: 20,
+//                                       ),
+//                                       SizedBox(width: 8),
+//                                       Flexible(
+//                                         child: Text(
+//                                           'Please login to add favorites',
+//                                           style: TextStyle(fontSize: 14),
+//                                         ),
+//                                       ),
+//                                     ],
+//                                   ),
+//                                   duration: const Duration(seconds: 2),
+//                                   backgroundColor: const Color(0xFFACBDAA),
+//                                   behavior: SnackBarBehavior.floating,
+//                                   margin: const EdgeInsets.only(
+//                                     bottom: 16,
+//                                     left: 16,
+//                                     right: 16,
+//                                   ),
+//                                   shape: RoundedRectangleBorder(
+//                                     borderRadius: BorderRadius.circular(8),
+//                                   ),
+//                                 ),
+//                               );
+//                             }
+//                             return;
+//                           }
+
+//                           try {
+//                             await FavoritesProvider.toggleFavorite(product.id);
+//                           } catch (e) {
+//                             if (context.mounted) {
+//                               ScaffoldMessenger.of(context).showSnackBar(
+//                                 SnackBar(
+//                                   content: Text('Error: $e'),
+//                                   backgroundColor: Colors.red,
+//                                 ),
+//                               );
+//                             }
+//                           }
+//                         },
+//                         child: Icon(
+//                           isFavorite ? Icons.favorite : Icons.favorite_border,
+//                           size: 18,
+//                           color: isFavorite ? Colors.black : Colors.grey,
+//                         ),
+//                       );
+//                     },
+//                   ),
+//                 ],
+//               ),
+//             ),
+//             Padding(
+//               padding: const EdgeInsets.symmetric(horizontal: 6),
+//               child: Text('EGP ${product.price.toInt()}'),
+//             ),
+//             Padding(
+//               padding: const EdgeInsets.symmetric(horizontal: 6),
+//               child: Text(
+//                 product.colors.join(', '),
+//                 style: const TextStyle(color: Colors.grey, fontSize: 12),
+//               ),
+//             ),
+//             const SizedBox(height: 6),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+// }
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../models/product_model.dart';
-import '../../providers/productcustomer_provider.dart';
+import '../../providers/product_provider.dart';
 import '../../providers/favorite_provider.dart';
 import '../../services/supabase_service.dart';
 import 'product_details_screen.dart';
 
-class ProductsScreen extends StatefulWidget {
+class ProductsScreen extends ConsumerStatefulWidget {
   final String filter;
   final String title;
 
@@ -18,29 +266,28 @@ class ProductsScreen extends StatefulWidget {
   });
 
   @override
-  State<ProductsScreen> createState() => _ProductsScreenState();
+  ConsumerState<ProductsScreen> createState() => _ProductsScreenState();
 }
 
-class _ProductsScreenState extends State<ProductsScreen> {
+class _ProductsScreenState extends ConsumerState<ProductsScreen> {
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ProductProvider>().loadProducts(widget.filter);
-      // Load favorites when screen opens
-      context.read<FavoritesProvider>().loadFavorites();
+      ref.read(productProvider.notifier).loadProducts(widget.filter);
+      ref.read(favoritesProvider).loadFavorites();
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<ProductProvider>();
+    final productState = ref.watch(productProvider);
 
     return Scaffold(
       appBar: AppBar(title: Text(widget.title)),
-      body: provider.isLoading
+      body: productState.isLoading
           ? const Center(child: CircularProgressIndicator())
-          : provider.products.isEmpty
+          : productState.products.isEmpty
               ? const Center(
                   child: Text(
                     'No products found',
@@ -55,10 +302,10 @@ class _ProductsScreenState extends State<ProductsScreen> {
                     crossAxisSpacing: 12,
                     mainAxisSpacing: 12,
                   ),
-                  itemCount: provider.products.length,
+                  itemCount: productState.products.length,
                   itemBuilder: (context, index) {
                     return ProductCard(
-                      product: provider.products[index],
+                      product: productState.products[index],
                     );
                   },
                 ),
@@ -105,26 +352,6 @@ class ProductCard extends StatelessWidget {
                         fit: BoxFit.cover,
                       ),
                     ),
-                    Positioned(
-                      bottom: 8,
-                      right: 8,
-                      child: InkWell(
-                        onTap: () {},
-                        child: Container(
-                          padding: const EdgeInsets.all(6),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: const Color.fromARGB(255, 159, 152, 152)
-                                .withAlpha(128),
-                          ),
-                          child: const Icon(
-                            Icons.add,
-                            size: 18,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
                   ],
                 ),
               ),
@@ -142,46 +369,21 @@ class ProductCard extends StatelessWidget {
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
-                  Consumer<FavoritesProvider>(
-                    builder: (context, favoriteProvider, _) {
+                  Consumer(
+                    builder: (context, ref, _) {
+                      final favoriteProvider = ref.watch(favoritesProvider);
                       final isFavorite =
                           favoriteProvider.isFavorite(product.id);
+
                       return InkWell(
                         onTap: () async {
-                          // Check if user is logged in
                           final user = SupabaseService.client.auth.currentUser;
                           if (user == null) {
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: const Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(
-                                        Icons.info_outline,
-                                        color: Colors.white,
-                                        size: 20,
-                                      ),
-                                      SizedBox(width: 8),
-                                      Flexible(
-                                        child: Text(
-                                          'Please login to add favorites',
-                                          style: TextStyle(fontSize: 14),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  duration: const Duration(seconds: 2),
-                                  backgroundColor: const Color(0xFFACBDAA),
-                                  behavior: SnackBarBehavior.floating,
-                                  margin: const EdgeInsets.only(
-                                    bottom: 16,
-                                    left: 16,
-                                    right: 16,
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
+                                const SnackBar(
+                                  content:
+                                      Text('Please login to add favorites'),
                                 ),
                               );
                             }
@@ -189,7 +391,9 @@ class ProductCard extends StatelessWidget {
                           }
 
                           try {
-                            await favoriteProvider.toggleFavorite(product.id);
+                            await ref
+                                .read(favoritesProvider)
+                                .toggleFavorite(product.id);
                           } catch (e) {
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(

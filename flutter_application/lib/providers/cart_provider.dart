@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/cart_item_model.dart';
 import '../models/product_model.dart';
+
+final cartProvider = ChangeNotifierProvider<CartProvider>((ref) {
+  return CartProvider();
+});
 
 class CartProvider extends ChangeNotifier {
   final List<CartItem> _items = [];

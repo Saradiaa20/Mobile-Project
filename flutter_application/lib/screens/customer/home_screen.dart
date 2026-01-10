@@ -4,8 +4,8 @@ import 'package:flutter_application/widgets/app_layout.dart';
 import 'package:flutter_application/widgets/footer.dart';
 import 'package:flutter_application/screens/static/about_us_page.dart';
 import 'package:flutter_application/screens/customer/products_screen.dart';
-import 'package:provider/provider.dart';
-import '../../providers/productcustomer_provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../providers/product_provider.dart';
 import '../../utils/responsive.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -112,8 +112,8 @@ class HomeScreen extends StatelessWidget {
 
               const SizedBox(height: 32),
 
-              _SectionHeader('SHOP HOODIES'),
-              _ProductsHorizontal(filter: 'hoodie'),
+              _SectionHeader('SHOP DENIM'),
+              _ProductsHorizontal(filter: 'denim'),
 
               const SizedBox(height: 32),
 
@@ -161,7 +161,7 @@ class HomeScreen extends StatelessWidget {
               ),
 
               FaqItem(
-                title: 'Where are your products made?',
+                title: 'Where are your products made of?',
                 child: const Text(
                   'We\'re selling 100% Egyptian products crafted with local threads by our amazing Egyptian tailors.',
                   style: TextStyle(height: 1.5),
@@ -382,8 +382,8 @@ class _SectionHeader extends StatelessWidget {
     switch (title) {
       case 'EVERYDAY FITS':
         return 'everyday_fit';
-      case 'SHOP HOODIES':
-        return 'hoodie';
+      case 'SHOP DENIM':
+        return 'denim';
       default:
         return '';
     }
@@ -562,27 +562,50 @@ class _FaqItemState extends State<FaqItem> {
   }
 }
 
-class _ProductsHorizontal extends StatefulWidget {
+// class _ProductsHorizontal extends StatefulWidget {
+//   final String filter;
+//   const _ProductsHorizontal({required this.filter});
+
+//   @override
+//   State<_ProductsHorizontal> createState() => _ProductsHorizontalState();
+// }
+
+class _ProductsHorizontal extends ConsumerStatefulWidget {
   final String filter;
   const _ProductsHorizontal({required this.filter});
 
   @override
-  State<_ProductsHorizontal> createState() => _ProductsHorizontalState();
+  ConsumerState<_ProductsHorizontal> createState() =>
+      _ProductsHorizontalState();
 }
 
-class _ProductsHorizontalState extends State<_ProductsHorizontal> {
-  @override
+
+class _ProductsHorizontalState extends ConsumerState<_ProductsHorizontal> {
+  // 
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   WidgetsBinding.instance.addPostFrameCallback((_) {
+  //     ref.read(productProvider.notifier).loadPreviewProducts(widget.filter);
+  //   });
+  // }
+ @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ProductProvider>().loadPreviewProducts(widget.filter);
+      ref.read(productProvider.notifier).loadPreviewProducts(widget.filter);
     });
   }
 
+
+
   @override
   Widget build(BuildContext context) {
-    final products =
-        context.watch<ProductProvider>().previewProducts[widget.filter] ?? [];
+    // final products =
+    //     context.watch<ProductNotifier>().previewProducts[widget.filter] ?? [];
+
+final products =
+        ref.watch(productProvider).previewProducts[widget.filter] ?? [];
 
     if (products.isEmpty) {
       return const SizedBox(height: 260);

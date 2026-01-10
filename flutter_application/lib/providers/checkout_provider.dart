@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/cart_item_model.dart';
+
+final checkoutProvider = ChangeNotifierProvider<CheckoutProvider>((ref) {
+  return CheckoutProvider();
+});
 
 class CheckoutProvider extends ChangeNotifier {
   final emailController = TextEditingController();
