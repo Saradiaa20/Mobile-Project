@@ -3,7 +3,6 @@ import 'package:flutter_application/services/product_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:io';
 import '../models/product_model.dart';
-import '../services/product_service.dart';
 
 final productProvider = StateNotifierProvider<ProductNotifier, List<Product>>((
   ref,

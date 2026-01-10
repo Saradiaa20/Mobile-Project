@@ -208,7 +208,7 @@ class _ProductManagementScreenState
                                   ? Image.asset(
                                       'assets/images/${product.imagePath}',
                                       fit: BoxFit.cover,
-                                      errorBuilder: (_, _, _) => Center(
+                                      errorBuilder: (_, __, ___) => Center(
                                         child: Icon(
                                           Icons.image_outlined,
                                           size: 40,

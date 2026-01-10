@@ -41,7 +41,7 @@ class _ProductFormDialogState extends ConsumerState<ProductFormDialog> {
       text: widget.product?.category ?? '',
     );
     _colorsController = TextEditingController(
-      text: widget.product?.colors ?? '',
+      text: widget.product != null ? widget.product!.colors.join(', ') : '',
     );
     // Convert List<String> to comma-separated string for the text field
     _sizeController = TextEditingController(
@@ -182,9 +182,9 @@ class _ProductFormDialogState extends ConsumerState<ProductFormDialog> {
 
     try {
       // Convert comma-separated sizes to List<String>
-      List<String> sizesList = [];
+      List<String> list = [];
       if (_sizeController.text.trim().isNotEmpty) {
-        sizesList = _sizeController.text
+        list = _sizeController.text
             .split(',')
             .map((e) => e.trim())
             .where((e) => e.isNotEmpty)
@@ -196,14 +196,14 @@ class _ProductFormDialogState extends ConsumerState<ProductFormDialog> {
         brandId: widget.brandId,
         name: _nameController.text.trim(),
         category: _categoryController.text.trim(),
-        colors: _colorsController.text.trim(),
-        sizes: sizesList,
-        description: _descriptionController.text.trim().isEmpty
-            ? null
-            : _descriptionController.text.trim(),
-        price: double.parse(_priceController.text.trim()),
+        colors: list,
+        sizes: list,
+        description: _descriptionController.text.trim(),
+        price: int.parse(_priceController.text.trim()),
         stockQty: int.parse(_stockController.text.trim()),
-        imagePath: _existingImagePath,
+        imagePath: _selectedImageFile != null
+            ? _selectedImageFile!.path
+            : _existingImagePath ?? '',
         status: _status,
         createdAt: widget.product?.createdAt ?? DateTime.now(),
       );
@@ -468,7 +468,7 @@ class _ProductFormDialogState extends ConsumerState<ProductFormDialog> {
                                       child: Image.file(
                                         File(snapshot.data!),
                                         fit: BoxFit.cover,
-                                        errorBuilder: (_, _, _) => Center(
+                                        errorBuilder: (_, __, ___) => Center(
                                           child: Icon(
                                             Icons.image_not_supported_outlined,
                                             size: 48,

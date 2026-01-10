@@ -4,14 +4,12 @@ class Responsive {
   static double screenWidth(BuildContext context) =>
       MediaQuery.of(context).size.width;
 
-  static bool isMobile(BuildContext context) =>
-      screenWidth(context) < 600;
+  static bool isMobile(BuildContext context) => screenWidth(context) < 600;
 
   static bool isTablet(BuildContext context) =>
       screenWidth(context) >= 600 && screenWidth(context) < 1024;
 
-  static bool isDesktop(BuildContext context) =>
-      screenWidth(context) >= 1024;
+  static bool isDesktop(BuildContext context) => screenWidth(context) >= 1024;
 
   static double fontSize(
     BuildContext context, {

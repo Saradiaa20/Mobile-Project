@@ -68,7 +68,7 @@ class BrandHomeScreen extends ConsumerWidget {
                                 child: Image.file(
                                   File(snapshot.data!),
                                   fit: BoxFit.cover,
-                                  errorBuilder: (_, _, _) => Container(
+                                  errorBuilder: (_, __, ___) => Container(
                                     color: Colors.grey[100],
                                     child: Icon(
                                       Icons.store,

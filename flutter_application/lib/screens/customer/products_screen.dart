@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../models/product_model.dart';
-import '../../providers/product_provider.dart';
+import '../../providers/productcustomer_provider.dart';
+import '../../providers/favorite_provider.dart';
+import '../../services/supabase_service.dart';
 import 'product_details_screen.dart';
 
 class ProductsScreen extends StatefulWidget {
@@ -24,17 +26,19 @@ class _ProductsScreenState extends State<ProductsScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ProductNotifier>().loadProducts(widget.filter);
+      context.read<ProductProvider>().loadProducts(widget.filter);
+      // Load favorites when screen opens
+      context.read<FavoritesProvider>().loadFavorites();
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<ProductNotifier>();
+    final provider = context.watch<ProductProvider>();
 
     return Scaffold(
       appBar: AppBar(title: Text(widget.title)),
-      body: provider.isLoading ?? false
+      body: provider.isLoading
           ? const Center(child: CircularProgressIndicator())
           : provider.products.isEmpty
               ? const Center(
@@ -45,8 +49,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                 )
               : GridView.builder(
                   padding: const EdgeInsets.all(16),
-                  gridDelegate:
-                      const SliverGridDelegateWithFixedCrossAxisCount(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
                     childAspectRatio: 0.7,
                     crossAxisSpacing: 12,
@@ -106,8 +109,7 @@ class ProductCard extends StatelessWidget {
                       bottom: 8,
                       right: 8,
                       child: InkWell(
-                        onTap: () {
-                        },
+                        onTap: () {},
                         child: Container(
                           padding: const EdgeInsets.all(6),
                           decoration: BoxDecoration(
@@ -127,7 +129,6 @@ class ProductCard extends StatelessWidget {
                 ),
               ),
             ),
-
             const SizedBox(height: 8),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 6),
@@ -138,18 +139,75 @@ class ProductCard extends StatelessWidget {
                       product.name,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style:
-                          const TextStyle(fontWeight: FontWeight.bold),
+                      style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
-                  InkWell(
-                    onTap: () {
+                  Consumer<FavoritesProvider>(
+                    builder: (context, favoriteProvider, _) {
+                      final isFavorite =
+                          favoriteProvider.isFavorite(product.id);
+                      return InkWell(
+                        onTap: () async {
+                          // Check if user is logged in
+                          final user = SupabaseService.client.auth.currentUser;
+                          if (user == null) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: const Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        Icons.info_outline,
+                                        color: Colors.white,
+                                        size: 20,
+                                      ),
+                                      SizedBox(width: 8),
+                                      Flexible(
+                                        child: Text(
+                                          'Please login to add favorites',
+                                          style: TextStyle(fontSize: 14),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  duration: const Duration(seconds: 2),
+                                  backgroundColor: const Color(0xFFACBDAA),
+                                  behavior: SnackBarBehavior.floating,
+                                  margin: const EdgeInsets.only(
+                                    bottom: 16,
+                                    left: 16,
+                                    right: 16,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                              );
+                            }
+                            return;
+                          }
+
+                          try {
+                            await favoriteProvider.toggleFavorite(product.id);
+                          } catch (e) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Error: $e'),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
+                          }
+                        },
+                        child: Icon(
+                          isFavorite ? Icons.favorite : Icons.favorite_border,
+                          size: 18,
+                          color: isFavorite ? Colors.black : Colors.grey,
+                        ),
+                      );
                     },
-                    child: const Icon(
-                      Icons.favorite_border,
-                      size: 18,
-                      color: Colors.grey,
-                    ),
                   ),
                 ],
               ),
@@ -161,12 +219,10 @@ class ProductCard extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 6),
               child: Text(
-                product.colors,
-                style:
-                    const TextStyle(color: Colors.grey, fontSize: 12),
+                product.colors.join(', '),
+                style: const TextStyle(color: Colors.grey, fontSize: 12),
               ),
             ),
-
             const SizedBox(height: 6),
           ],
         ),

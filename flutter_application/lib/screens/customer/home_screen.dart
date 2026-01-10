@@ -5,7 +5,7 @@ import 'package:flutter_application/widgets/footer.dart';
 import 'package:flutter_application/screens/static/about_us_page.dart';
 import 'package:flutter_application/screens/customer/products_screen.dart';
 import 'package:provider/provider.dart';
-import '../../providers/product_provider.dart';
+import '../../providers/productcustomer_provider.dart';
 import '../../utils/responsive.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -13,13 +13,22 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-        final double screenPadding = Responsive.padding(context);
-    final double titleFontSize =Responsive.fontSize(context, mobile: 24, tablet: 26, desktop: 28);
-    final double bodyFontSize = Responsive.fontSize(context, mobile: 12, tablet: 14, desktop: 16);
+    final double screenPadding = Responsive.padding(context);
+    final double titleFontSize = Responsive.fontSize(
+      context,
+      mobile: 24,
+      tablet: 26,
+      desktop: 28,
+    );
+    final double bodyFontSize = Responsive.fontSize(
+      context,
+      mobile: 12,
+      tablet: 14,
+      desktop: 16,
+    );
 
     return AppLayout(
       drawer: const _MainMenuDrawer(),
-
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
@@ -238,7 +247,7 @@ class _MainMenuDrawerState extends State<_MainMenuDrawer> {
         },
       ),
       if (activeMenu == 'men') ..._subMenu('men'),
-      const _MenuItem(title: 'SHOP BY BRAND'),
+      // const _MenuItem(title: 'SHOP BY BRAND'),
     ];
   }
 
@@ -566,14 +575,14 @@ class _ProductsHorizontalState extends State<_ProductsHorizontal> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ProductNotifier>().loadPreviewProducts(widget.filter);
+      context.read<ProductProvider>().loadPreviewProducts(widget.filter);
     });
   }
 
   @override
   Widget build(BuildContext context) {
     final products =
-        context.watch<ProductNotifier>().previewProducts[widget.filter] ?? [];
+        context.watch<ProductProvider>().previewProducts[widget.filter] ?? [];
 
     if (products.isEmpty) {
       return const SizedBox(height: 260);

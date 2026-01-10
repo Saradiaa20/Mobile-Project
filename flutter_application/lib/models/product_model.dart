@@ -3,12 +3,12 @@ class Product {
   final String brandId;
   final String name;
   final String category;
-  final String colors;
+  final List<String> colors;
   final List<String> sizes;
-  final String? description;
-  final double price;
+  final String description;
+  final int price;
   final int stockQty;
-  final String? imagePath;
+  final String imagePath;
   final bool status;
   final DateTime createdAt;
 
@@ -19,10 +19,10 @@ class Product {
     required this.category,
     required this.colors,
     required this.sizes,
-    this.description,
+    required this.description,
     required this.price,
     required this.stockQty,
-    this.imagePath,
+    required this.imagePath,
     required this.status,
     required this.createdAt,
   });
@@ -37,12 +37,12 @@ class Product {
       brandId: json['brandId'] as String,
       name: json['name'] as String? ?? '',
       category: json['category'] as String? ?? '',
-      colors: json['colors'] as String,
-      sizes: _parseSizes(json['size']),
-      description: json['description'] as String?,
-      price: ((json['price'] ?? 0) as num).toDouble(),
+      colors: parseList(json['colors']),
+      sizes: parseList(json['size']),
+      description: json['description'] as String,
+      price: json['price'] as int,
       stockQty: (json['stock_qty'] ?? 0) as int,
-      imagePath: json['image_path'] as String?,
+      imagePath: json['image_path'] as String,
       status: json['product_status'] as bool? ?? true,
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'])
@@ -52,13 +52,18 @@ class Product {
 
   
 
-  static List<String> _parseSizes(dynamic size) {
-    if (size == null) return [];
-    if (size is List) return List<String>.from(size);
-    return size
+  static List<String> parseList(dynamic value) {
+    if (value == null) return [];
+
+    if (value is List) {
+      return value.map((e) => e.toString().replaceAll('"', '').trim()).toList();
+    }
+
+    return value
         .toString()
-        .replaceAll('{', '')
-        .replaceAll('}', '')
+        .replaceAll('[', '')
+        .replaceAll(']', '')
+        .replaceAll('"', '')
         .split(',')
         .map((e) => e.trim())
         .toList();
@@ -74,7 +79,7 @@ class Product {
         'colors': colors,
         'size': sizes,
         'description': description,
-        'price': price.toInt(),
+        'price': price,
         'stock_qty': stockQty,
         'image_path': imagePath,
         'product_status': status,
@@ -102,10 +107,10 @@ class Product {
     String? brandId,
     String? name,
     String? category,
-    String? colors,
+    List<String>? colors,
     List<String>? sizes,
     String? description,
-    double? price,
+    int? price,
     int? stockQty,
     String? imagePath,
     bool? status,

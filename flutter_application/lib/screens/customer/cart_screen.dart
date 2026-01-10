@@ -5,6 +5,7 @@ import '../../widgets/cart/cart_item_card.dart';
 import 'home_screen.dart';
 import 'checkout_screen.dart';
 import '../../utils/responsive.dart';
+
 class CartScreen extends StatelessWidget {
   const CartScreen({super.key});
 
@@ -12,8 +13,10 @@ class CartScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final cart = context.watch<CartProvider>();
     final double screenPadding = Responsive.padding(context);
-    final double titleFontSize =Responsive.fontSize(context, mobile: 24, tablet: 26, desktop: 28);
-    final double bodyFontSize = Responsive.fontSize(context, mobile: 12, tablet: 14, desktop: 16);
+    final double titleFontSize =
+        Responsive.fontSize(context, mobile: 24, tablet: 26, desktop: 28);
+    final double bodyFontSize =
+        Responsive.fontSize(context, mobile: 12, tablet: 14, desktop: 16);
 
     return Scaffold(
       appBar: AppBar(title: const Text('My Cart')),
@@ -24,15 +27,15 @@ class CartScreen extends StatelessWidget {
             Expanded(
               child: ListView.separated(
                 itemCount: cart.items.length,
-                separatorBuilder: (_, _) => const SizedBox(height: 12),
+                separatorBuilder: (_, __) => const SizedBox(height: 12),
                 itemBuilder: (context, index) {
                   final item = cart.items[index];
 
                   return CartItemCard(
                     item: item,
-                    onAdd: () => cart.increaseQty(item.id),
-                    onRemove: () => cart.decreaseQty(item.id),
-                    onDelete: () => cart.removeFromCart(item.id),
+                    onAdd: () => cart.increaseQty(item),
+                    onRemove: () => cart.decreaseQty(item),
+                    onDelete: () => cart.removeFromCart(item),
                   );
                 },
               ),
