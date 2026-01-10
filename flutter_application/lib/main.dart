@@ -84,10 +84,10 @@ class MyApp extends StatelessWidget {
       ),
       home: provider.MultiProvider(  // Use the alias
         providers: [
-          // provider.ChangeNotifierProvider(create: () => CheckoutProvider()),
-          // provider.ChangeNotifierProvider(create: () => CartProvider()),
-          // provider.ChangeNotifierProvider(create: () => OrdersProvider()),
-          // provider.ChangeNotifierProvider(create: () => FavoritesProvider()),
+          provider.ChangeNotifierProvider(create: () => CheckoutProvider()),
+          provider.ChangeNotifierProvider(create: () => CartProvider()),
+          provider.ChangeNotifierProvider(create: () => OrdersProvider()),
+          provider.ChangeNotifierProvider(create: () => FavoritesProvider()),
         ],
         child: const AuthChecker(),
       ),
