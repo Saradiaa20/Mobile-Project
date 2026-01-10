@@ -1,173 +1,37 @@
-// import 'package:flutter/material.dart';
-// import 'package:provider/provider.dart';
-// import '../../providers/order_provider.dart';
-// import '../../utils/responsive.dart';
 
-
-// class OrdersHistoryScreen extends StatelessWidget {
-//   const OrdersHistoryScreen({super.key});
-
-//   @override
-//   Widget build(BuildContext context) {
-//     final double screenPadding = Responsive.padding(context);
-//     final double titleFontSize =
-//         Responsive.fontSize(context, mobile: 24, tablet: 26, desktop: 28);
-//     final double bodyFontSize =
-//         Responsive.fontSize(context, mobile: 12, tablet: 14, desktop: 16);
-
-//     final ordersProvider = context.watch<OrdersProvider>();
-//     final orders = ordersProvider.orders;
-
-//     return Scaffold(
-//       appBar: AppBar(title: const Text('Orders History'), centerTitle: true),
-//       body: orders.isEmpty
-//           ? const Center(
-//               child: Text(
-//                 'No orders yet',
-//                 style: TextStyle(color: Colors.grey),
-//               ),
-//             )
-//           : ListView.separated(
-//               padding: const EdgeInsets.all(16),
-//               itemCount: orders.length,
-//               separatorBuilder: (_, __) => const SizedBox(height: 12),
-//               itemBuilder: (context, index) {
-//                 final order = orders[index];
-//                 return _OrderCard(
-//                   orderId: order.id,
-//                   date: order.createdAt.toString().split(' ').first,
-//                   total: order.total,
-//                   status: order.status,
-//                   onView: () {
-//                     // 🔗 later: navigate to Order Details screen
-//                   },
-//                 );
-//               },
-//             ),
-//     );
-//   }
-// }
-
-// class _OrderCard extends StatelessWidget {
-//   final String orderId;
-//   final String date;
-//   final double total;
-//   final String status;
-//   final VoidCallback onView;
-
-//   const _OrderCard({
-//     required this.orderId,
-//     required this.date,
-//     required this.total,
-//     required this.status,
-//     required this.onView,
-//   });
-
-//   Color _statusColor() {
-//     switch (status) {
-//       case 'Delivered':
-//         return Colors.green;
-//       case 'Processing':
-//         return Colors.orange;
-//       case 'Shipped':
-//         return Colors.blue;
-//       case 'Cancelled':
-//         return Colors.red;
-//       default:
-//         return Colors.grey;
-//     }
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Container(
-//       padding: const EdgeInsets.all(16),
-//       decoration: BoxDecoration(
-//         borderRadius: BorderRadius.circular(12),
-//         border: Border.all(color: Colors.grey.shade300),
-//         color: Colors.white,
-//       ),
-//       child: Column(
-//         crossAxisAlignment: CrossAxisAlignment.start,
-//         children: [
-//           // ORDER ID + STATUS
-//           Row(
-//             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//             children: [
-//               Text(
-//                 orderId,
-//                 style: const TextStyle(
-//                   fontWeight: FontWeight.bold,
-//                   fontSize: 16,
-//                 ),
-//               ),
-//               Text(
-//                 status,
-//                 style: TextStyle(
-//                   color: _statusColor(),
-//                   fontWeight: FontWeight.w600,
-//                 ),
-//               ),
-//             ],
-//           ),
-
-//           const SizedBox(height: 8),
-
-//           // DATE
-//           Text('Date: $date', style: const TextStyle(color: Colors.grey)),
-
-//           const SizedBox(height: 12),
-
-//           // TOTAL + VIEW ORDER
-//           Row(
-//             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//             children: [
-//               Text(
-//                 'Total: EGP ${total.toStringAsFixed(0)}',
-//                 style: const TextStyle(fontWeight: FontWeight.w600),
-//               ),
-//               GestureDetector(
-//                 onTap: onView,
-//                 child: const Text(
-//                   'View Order Details',
-//                   style: TextStyle(
-//                     decoration: TextDecoration.underline,
-//                     fontWeight: FontWeight.w600,
-//                   ),
-//                 ),
-//               ),
-//             ],
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-// }
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../utils/responsive.dart';
-import '../../providers/order_provider.dart'; // make sure path is correct
+import '../../providers/order_provider.dart';
 
-class OrdersHistoryScreen extends ConsumerWidget {
+class OrdersHistoryScreen extends ConsumerStatefulWidget {
   const OrdersHistoryScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final double screenPadding = Responsive.padding(context);
+  ConsumerState<OrdersHistoryScreen> createState() =>
+      _OrdersHistoryScreenState();
+}
 
-    // ✅ Watch your ChangeNotifierProvider
-    final ordersProviderInstance = ref.watch(ordersProvider);
-
-    // ✅ Load orders once after first build
+class _OrdersHistoryScreenState
+    extends ConsumerState<OrdersHistoryScreen> {
+  @override
+  void initState() {
+    super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(ordersProvider).loadOrders();
+      ref.read(ordersProvider.notifier).loadOrders();
     });
+  }
 
-    final orders = ordersProviderInstance.orders;
+  @override
+  Widget build(BuildContext context) {
+    final ordersState = ref.watch(ordersProvider);
+    final orders = ordersState.orders;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Orders History'), centerTitle: true),
-      body: ordersProviderInstance.isLoading
+      appBar: AppBar(
+        title: const Text('Orders History'),
+        centerTitle: true,
+      ),
+      body: ordersState.isLoading
           ? const Center(child: CircularProgressIndicator())
           : orders.isEmpty
               ? const Center(
@@ -179,16 +43,20 @@ class OrdersHistoryScreen extends ConsumerWidget {
               : ListView.separated(
                   padding: const EdgeInsets.all(16),
                   itemCount: orders.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 12),
-                  itemBuilder: (context, index) {
+                  separatorBuilder: (_, __) =>
+                      const SizedBox(height: 12),
+                  itemBuilder: (_, index) {
                     final order = orders[index];
                     return _OrderCard(
                       orderId: order.id,
-                      date: order.createdAt.toString().split(' ').first,
+                      date: order.createdAt
+                          .toString()
+                          .split(' ')
+                          .first,
                       total: order.total,
                       status: order.status,
                       onView: () {
-                        // 🔗 Navigate to Order Details screen
+                        // later: navigate to order details
                       },
                     );
                   },
@@ -196,7 +64,6 @@ class OrdersHistoryScreen extends ConsumerWidget {
     );
   }
 }
-
 class _OrderCard extends StatelessWidget {
   final String orderId;
   final String date;
@@ -260,16 +127,18 @@ class _OrderCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          // DATE
-          Text('Date: $date', style: const TextStyle(color: Colors.grey)),
+          Text(
+            'Date: $date',
+            style: const TextStyle(color: Colors.grey),
+          ),
           const SizedBox(height: 12),
-          // TOTAL + VIEW ORDER
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
                 'Total: EGP ${total.toStringAsFixed(0)}',
-                style: const TextStyle(fontWeight: FontWeight.w600),
+                style:
+                    const TextStyle(fontWeight: FontWeight.w600),
               ),
               GestureDetector(
                 onTap: onView,

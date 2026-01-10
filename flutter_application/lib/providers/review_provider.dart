@@ -1,34 +1,70 @@
 import 'dart:io';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/review_model.dart';
 import '../services/review_service.dart';
 
-final reviewProvider = ChangeNotifierProvider<ReviewProvider>((ref) {
-  return ReviewProvider();
-});
+/// PROVIDER
+final reviewProvider =
+    StateNotifierProvider<ReviewNotifier, ReviewState>(
+  (ref) => ReviewNotifier(),
+);
 
-class ReviewProvider extends ChangeNotifier {
+/// STATE
+class ReviewState {
+  final List<Review> reviews;
+  final bool isLoading;
+
+  ReviewState({
+    required this.reviews,
+    required this.isLoading,
+  });
+
+  factory ReviewState.initial() {
+    return ReviewState(
+      reviews: [],
+      isLoading: false,
+    );
+  }
+
+  ReviewState copyWith({
+    List<Review>? reviews,
+    bool? isLoading,
+  }) {
+    return ReviewState(
+      reviews: reviews ?? this.reviews,
+      isLoading: isLoading ?? this.isLoading,
+    );
+  }
+}
+
+/// NOTIFIER
+class ReviewNotifier extends StateNotifier<ReviewState> {
+  ReviewNotifier() : super(ReviewState.initial());
+
   final ReviewService _service = ReviewService();
 
-  List<Review> reviews = [];
-  bool isLoading = false;
-
+  /// LOAD
   Future<void> loadReviews(String productId) async {
-    isLoading = true;
-    notifyListeners();
+    state = state.copyWith(isLoading: true);
 
     try {
       final data = await _service.getReviews(productId);
-      reviews = data.map((e) => Review.fromJson(e)).toList();
-    } catch (e) {
-      reviews = [];
-    }
+      final reviews =
+          data.map((e) => Review.fromJson(e)).toList();
 
-    isLoading = false;
-    notifyListeners();
+      state = state.copyWith(
+        reviews: reviews,
+        isLoading: false,
+      );
+    } catch (_) {
+      state = state.copyWith(
+        reviews: [],
+        isLoading: false,
+      );
+    }
   }
 
+  /// ADD
   Future<void> addReview({
     required String productId,
     required String comment,
@@ -49,7 +85,6 @@ class ReviewProvider extends ChangeNotifier {
       imageUrl: imageUrl,
     );
 
-    // reload reviews after insert
     await loadReviews(productId);
   }
 }

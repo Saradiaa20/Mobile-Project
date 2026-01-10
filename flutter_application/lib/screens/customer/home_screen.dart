@@ -60,29 +60,6 @@ class HomeScreen extends StatelessWidget {
               ),
 
               const SizedBox(height: 32),
-
-              // ================= OLD FEMALE / MALE COLLECTIONS (COMMENTED OUT) =================
-              // const Padding(
-              //   padding: EdgeInsets.symmetric(horizontal: 16),
-              //   child: Text(
-              //     'FEMALE COLLECTIONS',
-              //     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              //   ),
-              // ),
-              // const SizedBox(height: 16),
-              // _CollectionRow(),
-              //
-              // const SizedBox(height: 32),
-              //
-              // const Padding(
-              //   padding: EdgeInsets.symmetric(horizontal: 16),
-              //   child: Text(
-              //     'MALE COLLECTIONS',
-              //     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              //   ),
-              // ),
-              // const SizedBox(height: 16),
-              // _CollectionRow(),
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16),
                 child: Text(
@@ -247,7 +224,6 @@ class _MainMenuDrawerState extends State<_MainMenuDrawer> {
         },
       ),
       if (activeMenu == 'men') ..._subMenu('men'),
-      // const _MenuItem(title: 'SHOP BY BRAND'),
     ];
   }
 
@@ -352,28 +328,6 @@ class _TopButton extends StatelessWidget {
   }
 }
 
-// class _CollectionRow extends StatelessWidget {
-//   @override
-//   Widget build(BuildContext context) {
-//     return SizedBox(
-//       height: 200,
-//       child: ListView.separated(
-//         scrollDirection: Axis.horizontal,
-//         padding: const EdgeInsets.symmetric(horizontal: 16),
-//         itemCount: 3,
-//         separatorBuilder: (_, __) => const SizedBox(width: 12),
-//         itemBuilder: (_, __) => Container(
-//           width: 160,
-//           decoration: BoxDecoration(
-//             borderRadius: BorderRadius.circular(12),
-//             color: Colors.grey.shade300,
-//           ),
-//         ),
-//       ),
-//     );
-//   }
-// }
-
 class _SectionHeader extends StatelessWidget {
   final String title;
   const _SectionHeader(this.title);
@@ -418,28 +372,6 @@ class _SectionHeader extends StatelessWidget {
     );
   }
 }
-
-// class _ProductsHorizontal extends StatelessWidget {
-//   @override
-//   Widget build(BuildContext context) {
-//     return SizedBox(
-//       height: 260,
-//       child: ListView.separated(
-//         scrollDirection: Axis.horizontal,
-//         padding: const EdgeInsets.symmetric(horizontal: 16),
-//         itemCount: 4,
-//         separatorBuilder: (_, __) => const SizedBox(width: 12),
-//         itemBuilder: (_, __) => Container(
-//           width: 180,
-//           decoration: BoxDecoration(
-//             borderRadius: BorderRadius.circular(12),
-//             color: Colors.grey.shade200,
-//           ),
-//         ),
-//       ),
-//     );
-//   }
-// }
 
 class _GenderTile extends StatelessWidget {
   final String title;
@@ -491,29 +423,6 @@ class _GenderTile extends StatelessWidget {
   }
 }
 
-// class _FaqItem extends StatelessWidget {
-//   final String text;
-//   const _FaqItem(this.text);
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Padding(
-//       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-//       child: Container(
-//         padding: const EdgeInsets.all(16),
-//         decoration: BoxDecoration(
-//           borderRadius: BorderRadius.circular(8),
-//           color: Colors.grey.shade200,
-//         ),
-//         child: Row(
-//           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//           children: [Text(text), const Icon(Icons.keyboard_arrow_down)],
-//         ),
-//       ),
-//     );
-//   }
-// }
-
 class FaqItem extends StatefulWidget {
   final String title;
   final Widget child;
@@ -562,14 +471,6 @@ class _FaqItemState extends State<FaqItem> {
   }
 }
 
-// class _ProductsHorizontal extends StatefulWidget {
-//   final String filter;
-//   const _ProductsHorizontal({required this.filter});
-
-//   @override
-//   State<_ProductsHorizontal> createState() => _ProductsHorizontalState();
-// }
-
 class _ProductsHorizontal extends ConsumerStatefulWidget {
   final String filter;
   const _ProductsHorizontal({required this.filter});
@@ -581,14 +482,6 @@ class _ProductsHorizontal extends ConsumerStatefulWidget {
 
 
 class _ProductsHorizontalState extends ConsumerState<_ProductsHorizontal> {
-  // 
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   WidgetsBinding.instance.addPostFrameCallback((_) {
-  //     ref.read(productProvider.notifier).loadPreviewProducts(widget.filter);
-  //   });
-  // }
  @override
   void initState() {
     super.initState();
@@ -596,14 +489,8 @@ class _ProductsHorizontalState extends ConsumerState<_ProductsHorizontal> {
       ref.read(productProvider.notifier).loadPreviewProducts(widget.filter);
     });
   }
-
-
-
   @override
   Widget build(BuildContext context) {
-    // final products =
-    //     context.watch<ProductNotifier>().previewProducts[widget.filter] ?? [];
-
 final products =
         ref.watch(productProvider).previewProducts[widget.filter] ?? [];
 
@@ -662,3 +549,4 @@ final products =
     );
   }
 }
+

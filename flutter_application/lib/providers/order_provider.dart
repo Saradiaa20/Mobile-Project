@@ -1,28 +1,57 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/order_model.dart';
 import '../services/order_service.dart';
 
-final ordersProvider = ChangeNotifierProvider<OrdersProvider>((ref) {
-  return OrdersProvider();
-});
+/// PROVIDER
+final ordersProvider =
+    StateNotifierProvider<OrdersNotifier, OrdersState>(
+  (ref) => OrdersNotifier(),
+);
 
+/// STATE
+class OrdersState {
+  final List<OrderModel> orders;
+  final bool isLoading;
 
-class OrdersProvider extends ChangeNotifier {
-  final _service = OrderService();
-  List<OrderModel> _orders = [];
-  bool isLoading = false;
+  OrdersState({
+    required this.orders,
+    required this.isLoading,
+  });
 
-  List<OrderModel> get orders => _orders;
+  factory OrdersState.initial() {
+    return OrdersState(
+      orders: [],
+      isLoading: false,
+    );
+  }
+
+  OrdersState copyWith({
+    List<OrderModel>? orders,
+    bool? isLoading,
+  }) {
+    return OrdersState(
+      orders: orders ?? this.orders,
+      isLoading: isLoading ?? this.isLoading,
+    );
+  }
+}
+
+/// NOTIFIER
+class OrdersNotifier extends StateNotifier<OrdersState> {
+  OrdersNotifier() : super(OrdersState.initial());
+
+  final OrderService _service = OrderService();
 
   Future<void> loadOrders() async {
-    isLoading = true;
-    notifyListeners();
+    state = state.copyWith(isLoading: true);
 
     final data = await _service.getMyOrders();
-    _orders = data.map((e) => OrderModel.fromMap(e)).toList();
+    final orders =
+        data.map((e) => OrderModel.fromMap(e)).toList();
 
-    isLoading = false;
-    notifyListeners();
+    state = state.copyWith(
+      orders: orders,
+      isLoading: false,
+    );
   }
 }

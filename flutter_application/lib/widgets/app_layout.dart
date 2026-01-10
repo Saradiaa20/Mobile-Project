@@ -1,15 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_application/screens/customer/home_screen.dart';
+import 'package:flutter_application/screens/customer/profile_screen.dart';
 import 'package:flutter_application/screens/customer/search_screen.dart';
 import 'package:flutter_application/screens/customer/cart_screen.dart';
 import 'package:flutter_application/screens/customer/favorite_screen.dart';
-import 'package:provider/provider.dart';
+
 import '../../providers/cart_provider.dart';
 
 class AppLayout extends StatelessWidget {
   final Widget body;
   final Widget? drawer;
 
-  const AppLayout({super.key, required this.body, this.drawer});
+  const AppLayout({
+    super.key,
+    required this.body,
+    this.drawer,
+  });
 
   void _openSearch(BuildContext context) {
     showSearch(context: context, delegate: AppSearchDelegate());
@@ -20,14 +27,17 @@ class AppLayout extends StatelessWidget {
     return Scaffold(
       drawer: drawer,
 
-      //APP BAR
+      // APP BAR
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
         title: const Text(
           'GOLOCAL',
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900),
+          style: TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.w900,
+          ),
         ),
         iconTheme: const IconThemeData(color: Colors.black),
         actions: [
@@ -40,26 +50,41 @@ class AppLayout extends StatelessWidget {
 
       body: body,
 
-      //BOTTOM NAV
+      // BOTTOM NAV
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         showSelectedLabels: false,
         showUnselectedLabels: false,
-        onTap: (index) {
-          if (index == 1) {
-            _openSearch(context);
-          } else if (index == 2) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const CartScreen()),
-            );
-          } else if (index == 3) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const FavoriteScreen()),
-            );
-          }
-        },
+      onTap: (index) {
+  if (index == 0) {
+    // HOME
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const HomeScreen()),
+    );
+  } else if (index == 1) {
+    // SEARCH
+    _openSearch(context);
+  } else if (index == 2) {
+    // CART
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const CartScreen()),
+    );
+  } else if (index == 3) {
+    // FAVORITE
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const FavoriteScreen()),
+    );
+  } else if (index == 4) {
+    //  PROFILE
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const ProfileScreen()),
+    );
+  }
+},
         items: [
           const BottomNavigationBarItem(
             icon: Icon(Icons.home_outlined),
@@ -70,16 +95,17 @@ class AppLayout extends StatelessWidget {
             label: '',
           ),
 
-          // 🛒 CART WITH BADGE
           BottomNavigationBarItem(
             label: '',
-            icon: Consumer<CartProvider>(
-              builder: (context, cart, _) {
+            icon: Consumer(
+              builder: (context, ref, _) {
+                final cartItems = ref.watch(cartProvider);
+
                 return Stack(
                   clipBehavior: Clip.none,
                   children: [
                     const Icon(Icons.shopping_bag_outlined),
-                    if (cart.items.isNotEmpty)
+                    if (cartItems.isNotEmpty)
                       Positioned(
                         right: -6,
                         top: -6,
@@ -94,7 +120,7 @@ class AppLayout extends StatelessWidget {
                             minHeight: 18,
                           ),
                           child: Text(
-                            cart.items.length.toString(),
+                            cartItems.length.toString(),
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 11,

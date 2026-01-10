@@ -1,55 +1,113 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../models/cart_item_model.dart';
+// STATE
+class CheckoutState {
+  final TextEditingController emailController;
+  final TextEditingController firstNameController;
+  final TextEditingController lastNameController;
+  final TextEditingController addressController;
+  final TextEditingController cityController;
+  final TextEditingController phoneController;
 
-final checkoutProvider = ChangeNotifierProvider<CheckoutProvider>((ref) {
-  return CheckoutProvider();
-});
+  final String? emailError;
+  final String? addressError;
+  final String? phoneError;
+  final String governorate;
 
-class CheckoutProvider extends ChangeNotifier {
-  final emailController = TextEditingController();
-  final phoneController = TextEditingController();
-  final addressController = TextEditingController();
+  CheckoutState({
+    required this.emailController,
+    required this.firstNameController,
+    required this.lastNameController,
+    required this.addressController,
+    required this.cityController,
+    required this.phoneController,
+    this.emailError,
+    this.addressError,
+    this.phoneError,
+    this.governorate = 'Cairo',
+  });
 
-  String governorate = 'Cairo';
+  CheckoutState copyWith({
+    String? emailError,
+    String? addressError,
+    String? phoneError,
+    String? governorate,
+  }) {
+    return CheckoutState(
+      emailController: emailController,
+      firstNameController: firstNameController,
+      lastNameController: lastNameController,
+      addressController: addressController,
+      cityController: cityController,
+      phoneController: phoneController,
+      emailError: emailError,
+      addressError: addressError,
+      phoneError: phoneError,
+      governorate: governorate ?? this.governorate,
+    );
+  }
+}
+// PROVIDER
+final checkoutProvider =
+    StateNotifierProvider<CheckoutNotifier, CheckoutState>(
+  (ref) => CheckoutNotifier(),
+);
 
-  String? emailError;
-  String? phoneError;
-  String? addressError;
-
-  bool validate() {
-    bool valid = true;
-
-    if (emailController.text.isEmpty || !emailController.text.contains('@')) {
-      emailError = 'Enter a valid email';
-      valid = false;
-    } else {
-      emailError = null;
-    }
-
-    if (phoneController.text.length < 10) {
-      phoneError = 'Enter a valid phone number';
-      valid = false;
-    } else {
-      phoneError = null;
-    }
-
-    if (addressController.text.isEmpty) {
-      addressError = 'Address is required';
-      valid = false;
-    } else {
-      addressError = null;
-    }
-
-    notifyListeners();
-    return valid;
+// NOTIFIER
+class CheckoutNotifier extends StateNotifier<CheckoutState> {
+  CheckoutNotifier()
+      : super(
+          CheckoutState(
+            emailController: TextEditingController(),
+            firstNameController: TextEditingController(),
+            lastNameController: TextEditingController(),
+            addressController: TextEditingController(),
+            cityController: TextEditingController(),
+            phoneController: TextEditingController(),
+          ),
+        );
+  // SET GOVERNORATE
+  void setGovernorate(String value) {
+    state = state.copyWith(governorate: value);
   }
 
-  /// ✅ READY FOR BACKEND
+  // VALIDATION 
+  bool validate() {
+    bool isValid = true;
+
+    String? emailError;
+    String? addressError;
+    String? phoneError;
+
+    if (state.emailController.text.isEmpty) {
+      emailError = 'Email is required';
+      isValid = false;
+    }
+
+    if (state.addressController.text.isEmpty) {
+      addressError = 'Address is required';
+      isValid = false;
+    }
+
+    if (state.phoneController.text.isEmpty) {
+      phoneError = 'Phone is required';
+      isValid = false;
+    }
+
+    state = state.copyWith(
+      emailError: emailError,
+      addressError: addressError,
+      phoneError: phoneError,
+    );
+
+    return isValid;
+  }
+
+  // SUBMIT ORDER
   Future<void> submitOrder({
     required double total,
-    required List<CartItem> items,
+    required List items,
   }) async {
     if (!validate()) return;
 
@@ -62,15 +120,25 @@ class CheckoutProvider extends ChangeNotifier {
     debugPrint('User: ${user.id}');
     debugPrint('Total: $total');
     debugPrint('Items count: ${items.length}');
-    debugPrint('Address: ${addressController.text}');
-    debugPrint('Governorate: $governorate');
+    debugPrint('First name: ${state.firstNameController.text}');
+    debugPrint('Last name: ${state.lastNameController.text}');
+    debugPrint('City: ${state.cityController.text}');
+    debugPrint('Address: ${state.addressController.text}');
+    debugPrint('Governorate: ${state.governorate}');
+    debugPrint('Phone: ${state.phoneController.text}');
+
+    
   }
 
+  // DISPOSE
   @override
   void dispose() {
-    emailController.dispose();
-    phoneController.dispose();
-    addressController.dispose();
+    state.emailController.dispose();
+    state.firstNameController.dispose();
+    state.lastNameController.dispose();
+    state.addressController.dispose();
+    state.cityController.dispose();
+    state.phoneController.dispose();
     super.dispose();
   }
 }
